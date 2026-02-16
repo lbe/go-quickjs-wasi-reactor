@@ -2,33 +2,26 @@
 set -euo pipefail
 
 # QuickJS WASI Reactor Update Script
-# Downloads the reactor variant from paralin/quickjs releases
+# Downloads the reactor variant from quickjs-ng/quickjs releases
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="paralin/quickjs"
+REPO="quickjs-ng/quickjs"
 ASSET_NAME="qjs-wasi-reactor.wasm"
 OUTPUT_NAME="qjs-wasi.wasm"
 
-echo "Fetching latest reactor release from $REPO..."
-
-# Get the latest wasi-reactor release (filter by tag pattern)
-RELEASE_INFO=$(gh release view --repo "$REPO" --json tagName,assets \
-    $(gh release list --repo "$REPO" --limit 20 | grep "wasi.*reactor" | head -1 | awk '{print $1}'))
-
-TAG=$(echo "$RELEASE_INFO" | jq -r '.tagName')
-DOWNLOAD_URL=$(echo "$RELEASE_INFO" | jq -r ".assets[] | select(.name == \"$ASSET_NAME\") | .url")
+# Use tag from first argument, or find the latest release
+TAG="${1:-}"
+if [ -z "$TAG" ]; then
+    echo "Fetching latest release from $REPO..."
+    TAG=$(gh release view --repo "$REPO" --json tagName --jq '.tagName')
+fi
 
 if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
-    echo "Error: Could not find reactor release"
+    echo "Error: Could not determine release tag"
     exit 1
 fi
 
-if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then
-    echo "Error: Could not find $ASSET_NAME in release $TAG"
-    exit 1
-fi
-
-echo "Found release: $TAG"
+echo "Release: $TAG"
 echo "Downloading $ASSET_NAME..."
 
 # Download the WASM file
