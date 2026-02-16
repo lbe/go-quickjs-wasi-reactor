@@ -11,7 +11,7 @@ import _ "embed"
 // The reactor exports the raw QuickJS C API functions from quickjs.h and
 // quickjs-libc.h, allowing full control over runtime lifecycle.
 //
-// See: https://github.com/paralin/quickjs/tree/wasi-reactor-libc
+// See: https://github.com/quickjs-ng/quickjs
 //
 //go:embed qjs-wasi.wasm
 var QuickJSWASM []byte

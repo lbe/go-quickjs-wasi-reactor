@@ -13,9 +13,7 @@
 
 - [js-quickjs-wasi-reactor](https://github.com/aperturerobotics/js-quickjs-wasi-reactor) - JavaScript/TypeScript harness for browser environments
 - [go-quickjs-wasi](https://github.com/paralin/go-quickjs-wasi) - Standard WASI command model with blocking `_start()` entry point
-- [paralin/quickjs](https://github.com/paralin/quickjs) - Fork with `QJS_WASI_REACTOR` build target
-- [QuickJS-NG reactor PR](https://github.com/quickjs-ng/quickjs/pull/1308) - Upstream PR for reactor support
-- [QuickJS-NG event loop PR](https://github.com/quickjs-ng/quickjs/pull/1307) - Upstream PR for non-blocking event loop
+- [QuickJS-NG](https://github.com/quickjs-ng/quickjs) - Upstream QuickJS-NG (includes WASI reactor build)
 
 ## Variants
 
@@ -27,8 +25,8 @@ QuickJS is a small and embeddable JavaScript engine. It aims to support the late
 
 This project uses [QuickJS-NG], a community-driven fork of the original
 [QuickJS project] by Fabrice Bellard and Charlie Gordon. Both projects are
-actively maintained; QuickJS-NG focuses on community contributions and features
-like the WASI reactor build used here.
+actively maintained. The WASI reactor build target is part of upstream QuickJS-NG,
+and the WASM binary is pulled directly from QuickJS-NG GitHub release artifacts.
 
 [QuickJS-NG]: https://github.com/quickjs-ng/quickjs
 [QuickJS project]: https://bellard.org/quickjs/
@@ -221,20 +219,25 @@ repl script.mjs --module
 
 ## Updating
 
-To update to the latest QuickJS-NG reactor build from a local checkout:
+To update to the latest QuickJS-NG reactor build from upstream releases:
 
 ```bash
-# Set QUICKJS_DIR to your quickjs checkout (default: ../quickjs)
-QUICKJS_DIR=/path/to/quickjs ./update-quickjs.bash
+# Download latest release automatically
+./update-quickjs.bash
+
+# Or specify a release tag
+./update-quickjs.bash v0.12.1
 ```
 
 This script will:
 
-1. Read the current branch and commit from your local quickjs checkout
-2. Copy the `qjs-wasi-reactor.wasm` file
-3. Generate version information constants
+1. Fetch the latest release tag from `quickjs-ng/quickjs` (or use the provided tag)
+2. Download the `qjs-wasi-reactor.wasm` release artifact
+3. Generate `version.go` with version and download URL constants
 
-### Building the WASM file
+A GitHub Actions workflow (`.github/workflows/update-quickjs.yml`) also runs daily to automatically check for new upstream releases and publish updated versions.
+
+### Building the WASM file from source
 
 To build the WASM file from source:
 
