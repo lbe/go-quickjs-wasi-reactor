@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/tetratelabs/wazero"
-	"github.com/tetratelabs/wazero/experimental/fsapi"
 	experimentalsys "github.com/tetratelabs/wazero/experimental/sys"
 )
 
@@ -461,8 +460,8 @@ func (b *PollableStdinBuffer) Close() error {
 
 // Poll checks if data is available to read.
 // This signature matches what wazero expects for pollable stdin.
-func (b *PollableStdinBuffer) Poll(flag fsapi.Pflag, timeoutMillis int32) (ready bool, errno experimentalsys.Errno) {
-	if flag != fsapi.POLLIN {
+func (b *PollableStdinBuffer) Poll(flag experimentalsys.Pflag, timeoutMillis int32) (ready bool, errno experimentalsys.Errno) {
+	if flag != experimentalsys.POLLIN {
 		return false, experimentalsys.ENOTSUP
 	}
 
@@ -509,10 +508,8 @@ func (b *PollableStdinBuffer) Poll(flag fsapi.Pflag, timeoutMillis int32) (ready
 	return ready, 0
 }
 
-// Verify our buffer implements the pollable interface
-var _ interface {
-	Poll(fsapi.Pflag, int32) (bool, experimentalsys.Errno)
-} = (*PollableStdinBuffer)(nil)
+// _ is a type assertion
+var _ experimentalsys.Pollable = (*PollableStdinBuffer)(nil)
 
 // TestStdinReadHandler tests that os.setReadHandler fires when stdin has data.
 // This tests the PollIO function which is needed for async I/O patterns like RPC over yamux.

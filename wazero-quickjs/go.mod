@@ -11,6 +11,7 @@ require golang.org/x/sys v0.38.0 // indirect
 
 replace github.com/aperturerobotics/go-quickjs-wasi-reactor => ../
 
-// Use aperture fork which exposes experimental/fsapi for pollable stdin
+// exports Pollable in experimental/sys for pollable stdin
 // https://github.com/tetratelabs/wazero/issues/1500#issuecomment-3041125375
-replace github.com/tetratelabs/wazero => github.com/aperturerobotics/wazero v0.0.0-20260107095457-79bf31f21173
+// https://github.com/wazero/wazero/pull/2476
+replace github.com/tetratelabs/wazero => github.com/aperturerobotics/wazero v0.0.0-20260216034438-ad84e6308a28
