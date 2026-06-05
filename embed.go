@@ -1,24 +1,5 @@
 package quickjswasi
 
-import _ "embed"
-
-// QuickJSWASM contains the binary contents of the QuickJS WASI reactor build.
-//
-// This is a reactor-model WASM that exports the QuickJS C API for re-entrant
-// execution in host environments. Unlike the command model which blocks in
-// _start(), the reactor model allows the host to control execution flow.
-//
-// The reactor exports the raw QuickJS C API functions from quickjs.h and
-// quickjs-libc.h, allowing full control over runtime lifecycle.
-//
-// See: https://github.com/quickjs-ng/quickjs
-//
-//go:embed qjs-wasi.wasm
-var QuickJSWASM []byte
-
-// QuickJSWASMFilename is the filename for QuickJSWASM.
-const QuickJSWASMFilename = "qjs-wasi.wasm"
-
 // Memory management exports
 const (
 	// ExportMalloc allocates memory in WASM linear memory.

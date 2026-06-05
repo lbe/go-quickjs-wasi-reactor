@@ -29,6 +29,11 @@ gh release download "$TAG" --repo "$REPO" --pattern "$ASSET_NAME" --output "$SCR
 
 echo "Downloaded $OUTPUT_NAME ($(wc -c < "$SCRIPT_DIR/$OUTPUT_NAME" | tr -d ' ') bytes)"
 
+# Regenerate qjs-wasi.go and qjs-wasi.dat from the downloaded .wasm
+echo "Running wasm2go to regenerate Go bindings..."
+wasm2go -o "$SCRIPT_DIR/qjs-wasi/qjs-wasi.go" -unsafe -embed "$SCRIPT_DIR/qjs-wasi/qjs-wasi.dat" "$SCRIPT_DIR/$OUTPUT_NAME"
+echo "Generated qjs-wasi.go ($(wc -l < "$SCRIPT_DIR/qjs-wasi/qjs-wasi.go" | tr -d ' ') lines)"
+
 # Generate version info Go file
 echo "Generating version.go..."
 cat > "$SCRIPT_DIR/version.go" << EOF
@@ -45,4 +50,4 @@ EOF
 
 echo "Generated version.go with version $TAG"
 echo ""
-echo "Update complete!"
+echo "Update complete! (wasm2go regeneration done)"

@@ -55,7 +55,7 @@ jobs:
         if: steps.check.outputs.updated == 'true'
         run: |
           go test -v
-          cd ./wazero-quickjs && go test -v
+          cd ./wasm2go-quickjs && go test -v
 
       - name: Commit and tag
         if: steps.check.outputs.updated == 'true'

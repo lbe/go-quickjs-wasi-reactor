@@ -69,7 +69,7 @@ The reactor exports the complete QuickJS C API including:
 
 - Embeds the QuickJS-NG WASI reactor WebAssembly binary
 - Provides version information about the embedded QuickJS release
-- High-level Go API via the `wazero-quickjs` subpackage
+- High-level Go API via the `wasm2go-quickjs` subpackage
 - Update script to build and copy from local QuickJS checkout
 
 ## Packages
@@ -97,47 +97,38 @@ func main() {
 }
 ```
 
-### Wazero QuickJS Library (`github.com/aperturerobotics/go-quickjs-wasi-reactor/wazero-quickjs`)
+### wasm2go QuickJS Library (`github.com/aperturerobotics/go-quickjs-wasi-reactor/wasm2go-quickjs`)
 
-High-level Go API for running JavaScript with wazero:
+High-level Go API for running JavaScript using the wasm2go transpiler and wasihost:
 
 ```go
 package main
 
 import (
-    "context"
-    "embed"
+    "fmt"
     "os"
 
-    quickjs "github.com/aperturerobotics/go-quickjs-wasi-reactor/wazero-quickjs"
-    "github.com/tetratelabs/wazero"
+    quickjs "github.com/aperturerobotics/go-quickjs-wasi-reactor/wasm2go-quickjs"
 )
 
-//go:embed scripts
-var scriptsFS embed.FS
-
 func main() {
-    ctx := context.Background()
-    r := wazero.NewRuntime(ctx)
-    defer r.Close(ctx)
+    qjs, err := quickjs.NewQuickJS(nil)
+    if err != nil {
+        panic(err)
+    }
+    defer qjs.Close()
 
-    config := wazero.NewModuleConfig().
-        WithStdout(os.Stdout).
-        WithStderr(os.Stderr).
-        WithFS(scriptsFS)  // Mount embedded filesystem
+    if err := qjs.Init(nil); err != nil {
+        panic(err)
+    }
 
-    qjs, _ := quickjs.NewQuickJS(ctx, r, config)
-    defer qjs.Close(ctx)
+    if err := qjs.Eval(`console.log("Hello from QuickJS!")`, false); err != nil {
+        panic(err)
+    }
 
-    // Option 1: Initialize with CLI args to load script via WASI filesystem
-    qjs.Init(ctx, []string{"qjs", "--std", "scripts/main.js"})
-
-    // Option 2: Initialize with --std and eval code directly
-    // qjs.Init(ctx, []string{"qjs", "--std"})
-    // qjs.Eval(ctx, `console.log("Hello from QuickJS!");`, false)
-
-    // Run event loop until idle
-    qjs.RunLoop(ctx)
+    if err := qjs.RunLoop(); err != nil {
+        panic(err)
+    }
 }
 ```
 
@@ -145,59 +136,19 @@ func main() {
 
 ```go
 // Basic runtime with std modules available for import
-qjs.Init(ctx, nil)
-qjs.Eval(ctx, `import * as std from 'qjs:std'; std.printf("Hello\n")`, true)
+qjs.Init(nil)
+qjs.Eval(`import * as std from 'qjs:std'; std.printf("Hello\n")`, true)
 
 // With --std flag to expose std, os, bjson as globals
-qjs.Init(ctx, []string{"qjs", "--std"})
-qjs.Eval(ctx, `std.printf("Hello\n")`, false)  // std is already global
+qjs.Init([]string{"qjs", "--std"})
+qjs.Eval(`std.printf("Hello\n")`, false)  // std is already global
 
 // With script args accessible via scriptArgs global
-qjs.Init(ctx, []string{"qjs", "script.js", "--verbose"})
-qjs.Eval(ctx, `console.log(scriptArgs)`, false)  // ['qjs', 'script.js', '--verbose']
+qjs.Init([]string{"qjs", "script.js", "--verbose"})
+qjs.Eval(`console.log(scriptArgs)`, false)  // ['qjs', 'script.js', '--verbose']
 ```
 
-### Non-Blocking Event Loop
-
-The reactor model enables cooperative scheduling with the host:
-
-```go
-// Instead of blocking RunLoop(), use LoopOnce() for fine-grained control
-for {
-    result, err := qjs.LoopOnce(ctx)
-    if err != nil {
-        return err
-    }
-
-    switch {
-    case result == quickjs.LoopIdle:
-        // No pending work - done
-        return nil
-    case result == quickjs.LoopError:
-        return errors.New("JavaScript error")
-    case result == 0:
-        // More microtasks pending - continue immediately
-        continue
-    case result > 0:
-        // Timer pending - host can do other work before next iteration
-        time.Sleep(time.Duration(result) * time.Millisecond)
-    }
-}
-```
-
-### I/O Polling
-
-For scripts that use `os.setReadHandler()`, the host must poll for I/O:
-
-```go
-// Poll for I/O events (non-blocking)
-result, _ := qjs.PollIO(ctx, 0)
-
-// Poll with timeout (blocking up to 100ms)
-result, _ := qjs.PollIO(ctx, 100)
-```
-
-See the [wazero-quickjs README](./wazero-quickjs/README.md) for more details.
+See the [wasm2go-quickjs README](./wasm2go-quickjs/README.md) for more details.
 
 ## Command-Line REPL
 
@@ -205,7 +156,7 @@ A command-line JavaScript runner with interactive REPL mode is provided:
 
 ```bash
 # Install
-go install github.com/aperturerobotics/go-quickjs-wasi-reactor/wazero-quickjs/repl@master
+go install github.com/aperturerobotics/go-quickjs-wasi-reactor/wasm2go-quickjs/repl@master
 
 # Interactive REPL
 repl
@@ -264,7 +215,7 @@ cp qjs.wasm ../qjs-wasi-reactor.wasm
 
 ```bash
 go test ./...
-cd wazero-quickjs && go test ./...
+cd wasm2go-quickjs && go test ./...
 ```
 
 ## License

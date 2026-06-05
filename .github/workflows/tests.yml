@@ -29,4 +29,4 @@ jobs:
         run: go test -v
 
       - name: Test Go (quickjs)
-        run: cd ./wazero-quickjs && go test -v
+        run: cd ./wasm2go-quickjs && go test -v
